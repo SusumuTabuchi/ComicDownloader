@@ -127,3 +127,15 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# apps data
+/apps_data/**
+
+# db_data
+/db_data/**
+
+# phpmyadmin_data
+/phpmyadmin_data/**
+
+# blank directory
+!.gitkeep
