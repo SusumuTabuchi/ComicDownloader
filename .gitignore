@@ -137,5 +137,8 @@ dmypy.json
 # phpmyadmin_data
 /phpmyadmin_data/**
 
+# ci_data
+/ci_data/**
+
 # blank directory
 !.gitkeep

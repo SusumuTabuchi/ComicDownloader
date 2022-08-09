@@ -3,9 +3,23 @@ FROM centos:centos7.9.2009
 # ユーザー設定
 ARG USER_NAME="dev_user"
 ARG USER_PASSWORD="kiifsII9skkl3"
+ARG JENKINS_USER="jenkins"
+ARG JENKINS_USER_PASSWORD="usSF9fj"
 
 # 言語設定
 ENV LANG=en_US.UTF-8
+
+#########
+# ユーザーの作成
+#########
+# 開発ユーザー
+RUN groupadd -g 1000 developer && \
+    useradd -g developer -G wheel -m -d /home/${USER_NAME} -s /bin/bash ${USER_NAME} && \
+    echo "${USER_NAME}:${USER_PASSWORD}" | chpasswd
+# jenkinsユーザー
+RUN groupadd -g 2000 jenkins && \
+    useradd -g jenkins -G wheel -m -d /home/${JENKINS_USER} -s /bin/bash ${JENKINS_USER} && \
+    echo "${JENKINS_USER}:${JENKINS_USER_PASSWORD}" | chpasswd
 
 # Install dependence
 RUN yum update -y --exclude=kernel* --exclude=centos* \
@@ -75,45 +89,55 @@ RUN sudo /opt/conda/bin/conda install -y -c conda-canary -c defaults -c conda-fo
     pandas \
     toml \
     chromedriver-binary \
+    jupyter_contrib_nbextensions \
     && sudo /opt/conda/bin/conda clean --all --yes
 
 RUN sudo /opt/conda/bin/pip install codecov radon \
     && sudo rm -rf ~root/.cache/pip
 
-# RUN sudo yum -y install epel-release
-# RUN sudo yum -y update
-# # RUN sudo reboot
-# RUN sudo yum groupinstall "Development Tools" -y
-# RUN sudo yum install openssl-devel libffi-devel bzip2-devel -y
+#########
+# jupyter
+#########
+RUN jupyter contrib nbextension install --sys-prefix
+RUN jupyter nbextensions_configurator enable --user
 
-# RUN curl -O https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
-# RUN tar xfv Python-${PYTHON_VERSION}.tgz
-# RUN rm -rf Python-3.9.12.tgz
+#########
+# MariaDB
+#########
+RUN wget https://downloads.mariadb.com/MariaDB/mariadb_repo_setup && \
+    chmod +x mariadb_repo_setup && \
+    ./mariadb_repo_setup && \
+    yum install -y perl-DBI libaio libsepol lsof boost-program-options && \
+    yum install -y MariaDB-client
 
-# RUN cd Python-${PYTHON_VERSION}
-# RUN ./configure --enable-optimizations
-# RUN sudo make altinstall
+#########
+# Jenkins
+#########
+# java
+RUN yum install -y java-11-openjdk.x86_64 git
+# SSH
+RUN yum install -y openssh \
+    openssh-server
+RUN mkdir /var/run/sshd
+RUN ssh-keygen -t rsa -N "" -f /etc/ssh/ssh_host_rsa_key && \
+    ssh-keygen -t dsa -N "" -f /etc/ssh/ssh_host_dsa_key && \
+    ssh-keygen -t ecdsa -N "" -f /etc/ssh/ssh_host_ecdsa_key && \
+    ssh-keygen -t ed25519 -N "" -f /etc/ssh/ssh_host_ed25519_key
+RUN sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+# ssh公開鍵
+ADD ./setting_sshkey.sh /tmp/setting_sshkey.sh
+USER jenkins
+RUN mkdir ~/.ssh && \
+    cd ~/.ssh && \
+    touch authorized_keys
 
-# # pip
-# RUN curl -O https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
-# RUN python /tmp/get-pip.py
-
-# # symlink for python3.x
-# RUN  PY_MVER=$(echo ${PYTHON_VERSION} | sed s/\.[0-9,]\.[0-9,]*$//g); \
-# echo ${PY_MVER}; \
-# if [ "${PY_MVER}" = "3" ]; then \
-#       ln -s /usr/local/bin/python3 /usr/local/bin/python; \
-#       ln -s /usr/local/bin/pip3 /usr/local/bin/pip; \
-# fi
-
-# # pip modules
-# RUN pip install --upgrade pip
-# RUN pip install selenium
-
-# ユーザーの作成と切り替え
-RUN groupadd -g 1000 developer && \
-    useradd -g developer -G wheel -M -d /home/${USER_NAME} -s /bin/bash ${USER_NAME} && \
-    echo "${USER_NAME}:${USER_PASSWORD}" | chpasswd
+#########
+# ユーザーの切り替え
+#########
 USER ${USER_NAME}
 
-CMD ["/sbin/init"]
+#########
+# CMD
+#########
+# CMD ["/sbin/init"]
+CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "/sbin/init", "/usr/sbin/sshd"]

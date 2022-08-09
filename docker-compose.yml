@@ -23,7 +23,7 @@ services:
       - PMA_USER=root
       - PMA_PASSWORD=ksD8k3hjj
     ports:
-      - 8080:80
+      - 8888:80
     volumes:
       - ./phpmyadmin_data:/sessions
     networks:
@@ -44,6 +44,22 @@ services:
     depends_on:
       - db
     container_name: comic_app
+
+  ci:
+    build:
+      context: "./"
+      dockerfile: "Dockerfile_ci"
+    environment:
+      - JAVA_OPTS='-Duser.timezone=Asia/Tokyo -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8'
+    ports:
+      - '8080:8080'
+      - '50000:50000'
+    volumes:
+      - ./ci_data:/var/jenkins_home
+      - ./ssh:/tmp/ssh
+    networks:
+      - comicDevs
+    container_name: comic_ci
 
 networks:
   comicDevs:
