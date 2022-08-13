@@ -4,62 +4,70 @@ services:
     image: mariadb:10.6
     volumes:
       - ./db_data:/var/lib/mysql
-    expose:
-      - 3306
+    # expose:
+    #   - 3306
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ksD8k3hjj
+      TZ: Asia/Tokyo
+      MYSQL_ROOT_PASSWORD: ${DBROOTPASS}
     networks:
       - comicDevs
     container_name: comic_db
   
   phpmyadmin:
-    image: phpmyadmin:latest
+    # image: phpmyadmin:latest
+    build:
+      context: "./"
+      dockerfile: "Dockerfile_pma"
     depends_on: 
       - db
     environment:
       - PMA_ARBITRARY=1
       - PMA_HOSTS=db
-      - PMA_USER=root
-      - PMA_PASSWORD=ksD8k3hjj
+      # - PMA_USER=${DBUSERNAME}
+      # - PMA_PASSWORD=${DBROOTPASS}
+      - TZ=Asia/Tokyo
     ports:
       - 8888:80
+      - 8889:443
     volumes:
-      - ./phpmyadmin_data:/sessions
+      - ./phpmyadmin_data/sessions:/sessions
+      # - ./phpmyadmin_data/config/config.user.inc.php:/etc/phpmyadmin/config.user.inc.php
+      # - ./phpmyadmin_data/config:/tmp
     networks:
       - comicDevs
     container_name: comic_phpmyadmin
   
-  app:
-    build:
-      context: "./"
-      dockerfile: "Dockerfile"
-    volumes:
-      - ./apps_data:/home/dev_user
-    ports:
-      - 12345:8888
-    networks:
-      - comicDevs
-    privileged: true
-    depends_on:
-      - db
-    container_name: comic_app
+  # app:
+  #   build:
+  #     context: "./"
+  #     dockerfile: "Dockerfile"
+  #   volumes:
+  #     - ./apps_data:/home/dev_user
+  #   ports:
+  #     - 12345:8888
+  #   networks:
+  #     - comicDevs
+  #   privileged: true
+  #   depends_on:
+  #     - db
+  #   container_name: comic_app
 
-  ci:
-    build:
-      context: "./"
-      dockerfile: "Dockerfile_ci"
-    environment:
-      - JAVA_OPTS='-Duser.timezone=Asia/Tokyo -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8'
-    ports:
-      - '8080:8080'
-      - '50000:50000'
-    volumes:
-      - ./ci_data:/var/jenkins_home
-      - ./ssh:/tmp/ssh
-    networks:
-      - comicDevs
-    container_name: comic_ci
+  # ci:
+  #   build:
+  #     context: "./"
+  #     dockerfile: "Dockerfile_ci"
+  #   environment:
+  #     - JAVA_OPTS='-Duser.timezone=Asia/Tokyo -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8'
+  #   ports:
+  #     - '8080:8080'
+  #     - '50000:50000'
+  #   volumes:
+  #     - ./ci_data:/var/jenkins_home
+  #     - ./ssh:/tmp/ssh
+  #   networks:
+  #     - comicDevs
+  #   container_name: comic_ci
 
 networks:
   comicDevs:
