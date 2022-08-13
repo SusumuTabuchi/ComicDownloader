@@ -1,0 +1,33 @@
+FROM phpmyadmin:5.2.0-apache
+
+ARG COUNTRY="JP"
+ARG STATE_NAME="Tokyo"
+ARG LOCALITY_NAME="Minato"
+ARG ORGANAZATION_NAME="KCCT"
+ARG ORGANAZATION_UNIT_NAME="Devlopement"
+ARG COMMON_NAME="localhost"
+ARG EMAIL_ADDRESS="aaa@aa.bb"
+
+# Basic認証
+ADD ./phpmyadmin_data/config/.htaccess /var/www/html/.htaccess
+ADD ./phpmyadmin_data/config/.htpasswd  /var/www/html/.htpasswd
+
+############
+# 自己証明書
+############
+RUN cd /etc/ssl/certs && \
+    openssl genrsa > server.key && \
+    openssl req -new -key server.key \
+        -subj     "/C=${COUNTRY}/ST=${STATE_NAME}/L=${LOCALITY_NAME}/O=${ORGANAZATION_NAME}/OU=${ORGANAZATION_UNIT_NAME}/CN=${COMMON_NAME}/emailAddress=${EMAIL_ADDRESS}" \
+        > server.csr && \
+    openssl x509 -req -signkey server.key < server.csr > server.crt && \
+    cp -a server.key ../private/
+
+ADD ./phpmyadmin_data/config/ssl.conf /etc/apache2/mods-available/ssl.conf
+ADD ./phpmyadmin_data/config/default-ssl.conf /etc/apache2/sites-available/default-ssl.conf
+
+RUN service apache2 start
+RUN a2ensite default-ssl
+RUN a2enmod ssl
+RUN a2enmod headers
+RUN service apache2 restart

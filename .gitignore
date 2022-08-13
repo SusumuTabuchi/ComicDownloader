@@ -135,7 +135,8 @@ dmypy.json
 /db_data/**
 
 # phpmyadmin_data
-/phpmyadmin_data/**
+/phpmyadmin_data/sessions/**
+!/phpmyadmin_data/config/**
 
 # ci_data
 /ci_data/**
