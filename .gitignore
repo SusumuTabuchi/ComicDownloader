@@ -129,7 +129,22 @@ dmypy.json
 .pyre/
 
 # apps data
-/apps_data/**
+!/apps_data/**
+/apps_data/__pychace__
+/apps_data/.cache
+/apps_data/.conda
+/apps_data/.ipy**
+/apps_data/.Jupyter
+/apps_data/.local
+/apps_data/.ssh
+/apps_data/.vscode**
+/apps_data/comics
+/apps_data/img
+/apps_data/log
+/apps_data/.bash_history
+/apps_data/.git**
+/apps_data/**.ipynb
+
 
 # db_data
 /db_data/**

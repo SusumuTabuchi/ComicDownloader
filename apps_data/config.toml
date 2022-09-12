@@ -1,0 +1,39 @@
+# This is a TOML document.
+
+title = "config"
+
+# [sample]
+# a = "aaa"
+# b = 1111
+# c = true
+# d = [
+#     "abc",
+#     "def"
+# ]
+# e = [ 1000, 10001, 999]
+# f = [ ["aa", "bb"], [1, 2] ]
+
+[db]
+host = "comic_db"
+db = "commic_master"
+user = "root"
+password = "ksD8k3hjj"
+charset = "utf8mb4"
+local_infile = 1 # CSVアップロード等を行う場合は１、でなければ０を
+
+[logger]
+format = "[%(asctime)s (%(module)-14s)] 【%(levelname)-5s】: %(message)s"
+date_format = "%Y-%m-%d %H:%M:%S %z"
+setlevel = "DEBUG"
+# setlevel = "INFO"
+setlevel_filehandler = "DEBUG"
+filename = "log/log_{0}.log"
+
+[scraping]
+retry_num = 3
+
+[comic]
+magazines = [
+    "少年ジャンプ+",
+    "裏サンデー"
+]
