@@ -64,32 +64,33 @@ RUN curl -L https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.s
     && sudo bash /tmp/miniconda.sh -bfp /opt/conda/ \
     && rm -rf /tmp/miniconda.sh
 RUN sudo /opt/conda/bin/conda install -y -c conda-canary -c defaults -c conda-forge \
+    anaconda-client \
+    beautifulsoup4 \
+    chromedriver-binary \
     conda \
     conda-package-handling \
-    python=$PYTHON_VERSION \
-    pycosat \
-    requests \
-    ruamel_yaml \
     cytoolz \
-    anaconda-client \
+    enum34 \
+    flake8 \
+    jupyterlab \
+    jupyter_contrib_nbextensions \
+    mock \
     nbformat \
+    opencv \
+    pandas \
+    pexpect \
+    pycosat \
+    pydrive \
+    pymysql \
     pytest \
     pytest-cov \
     pytest-timeout \
-    mock \
+    python=$PYTHON_VERSION \
+    requests \
+    ruamel_yaml \
     responses \
-    pexpect \
-    flake8 \
-    enum34 \
-    beautifulsoup4 \
-    jupyterlab \
     selenium \
-    pydrive \
-    pymysql \
-    pandas \
     toml \
-    chromedriver-binary \
-    jupyter_contrib_nbextensions \
     && sudo /opt/conda/bin/conda clean --all --yes
 
 RUN sudo /opt/conda/bin/pip install codecov radon \
@@ -131,13 +132,14 @@ RUN mkdir ~/.ssh && \
     cd ~/.ssh && \
     touch authorized_keys
 
-#########
+########
 # ユーザーの切り替え
 #########
 USER ${USER_NAME}
-
+WORKDIR /home/${USER_NAME}
 #########
 # CMD
 #########
 # CMD ["/sbin/init"]
-CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "/sbin/init", "/usr/sbin/sshd"]
+# CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "/sbin/init", "/usr/sbin/sshd"]
+CMD [ "jupyter", "lab", "--ip=0.0.0.0", "--port=8888" ]
