@@ -1,0 +1,26 @@
+# const
+
+[db]
+ConnectionStart = "Start connection to mariaDB."
+ConnectionSuccess = "Success: connection to mariaDB."
+ConnectionError = "Error: connection to mariaDB."
+ConnectionClose = "Close connection."
+CursorClose = "Close cursor."
+QueryError = "Error: SQL has some errors."
+Rollback = "Performed a rollback"
+Insert = "Insert into {0}. count: {1}"
+
+[application]
+ApplicationStart = "Application Start."
+ApplicationEnd = "Application End."
+
+[scraping]
+Start = "Scraping start."
+End = "Scraping end."
+Error = "Scraping error."
+Is_maintenance = "Probably under maintenance. Please try again. title : [{0}]"
+
+[query]
+get_comics = "SELECT `id`, `title`, `top_url` FROM `mangas` WHERE magazine = '{0}' AND `update_flag` = 1"
+get_got_items = "SELECT `subtitle` FROM `episodes` WHERE `manga_id` = '{0}'"
+insert_get_items = "INSERT INTO `episodes`(`manga_id`, `title`, `subtitle`) VALUES {0}"
