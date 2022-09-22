@@ -1,5 +1,5 @@
 from argparse import ArgumentError
-from pkgutil import get_loader
+# from pkgutil import get_loader
 import requests
 from bs4 import BeautifulSoup as bs
 import cv2
@@ -16,7 +16,7 @@ import time
 import datetime
 import re
 from os import path, getcwd
-import NewError
+# import NewError
 from mylib import Message as ms, MariadbClient as mdc, Common as cmn, NewError, Query
 
 # const
