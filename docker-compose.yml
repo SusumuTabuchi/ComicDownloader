@@ -13,13 +13,13 @@ services:
     networks:
       - comicDevs
     container_name: comic_db
-  
+
   phpmyadmin:
     # image: phpmyadmin:latest
     build:
       context: "./"
       dockerfile: "Dockerfile_pma"
-    depends_on: 
+    depends_on:
       - db
     environment:
       - PMA_ARBITRARY=1
@@ -37,7 +37,7 @@ services:
     networks:
       - comicDevs
     container_name: comic_phpmyadmin
-  
+
   app:
     build:
       context: "./"
