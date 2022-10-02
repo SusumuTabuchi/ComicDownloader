@@ -155,6 +155,8 @@ class ComicDownloader:
             rp = 28
         elif weight == 760:
             rp = 24
+        elif weight == 779:
+            rp = 11
         elif weight == 822:
             rp = 22
         elif weight == 836:
@@ -162,8 +164,9 @@ class ComicDownloader:
         elif weight == 844:
             rp = 12
         else:
+            # 想定外のweghitの場合エラー送出
             rp = 28
-            raise NewError.NewSizeError(weight)
+            raise NewError.NewSizeError("New Size Error. weight is [{0}].".format(weight))
         RIGHT_PIXEL = rp # 右からのピクセル数
         BOTTOM_PIXEL = 16 # 下からのピクセル数
         SPLIT_X = 4 # 横分割数
@@ -348,7 +351,7 @@ class ComicDownloader:
                     time.sleep(0.5)
 
             except Exception as e:
-                logger.warn("title: {0}. subtitle: {1}. message: {2}".format(self.updates["titles"][count_num], episode_subtitles[num], e))
+                logger.warning("title: {0}. subtitle: {1}. message: {2}".format(self.updates["titles"][count_num], episode_subtitles[num], e))
                 time.sleep(1)
             else:
                 logger.info("got: {0} {1}".format(self.updates["titles"][count_num], episode_subtitles[num]))
@@ -423,7 +426,7 @@ class ComicDownloader:
                     time.sleep(0.5)
                     number += 1
             except Exception as e:
-                logger.warn("title: {0}. subtitle: {1}. message: {2}".format(self.updates["titles"][count_num], episode_subtitles[num], e))
+                logger.warning("title: {0}. subtitle: {1}. message: {2}".format(self.updates["titles"][count_num], episode_subtitles[num], e))
                 time.sleep(1)
             else:
                 logger.info("got: {0} {1}".format(self.updates["titles"][count_num], episode_subtitles[num]))
