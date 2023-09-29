@@ -24,9 +24,9 @@ local_infile = 1 # CSVアップロード等を行う場合は１、でなけれ�
 [logger]
 format = "[%(asctime)s (%(module)-14s)] 【%(levelname)-5s】: %(message)s"
 date_format = "%Y-%m-%d %H:%M:%S %z"
-setlevel = "DEBUG"
-# setlevel = "INFO"
-setlevel_filehandler = "INFO"
+# setlevel = "DEBUG"
+setlevel = "INFO"
+setlevel_filehandler = "DEBUG"
 filename = "log/log_{0}.log"
 
 [scraping]

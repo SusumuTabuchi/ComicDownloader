@@ -151,6 +151,12 @@ class ComicDownloader:
         #     836 x 1200 パターンがあることが判明。要修正-> 836 x 1200 の場合はRIGHT_PIXEL = 4
         #     822 x 1200 パターンもある・・・ -> RIGHT_PIXEL = 22
         # 20220901 - 修正 元画像weightの値によってRIGHT_PIXELを変更する
+        # 切り出しの数値設定
+        # weight - rp の値が4で割り切れるような数値でなければならないことに注意する
+        # height - bp の値が4で割り切れるような数値でなければならないことに注意する
+        # 20230930 bpが0となるパターン出現に伴い、bpの値を指定する
+        rp = 28
+        bp = 16
         if weight == 764:
             rp = 28
         elif weight == 760:
@@ -163,12 +169,18 @@ class ComicDownloader:
             rp = 4
         elif weight == 844:
             rp = 12
+        elif weight == 841:
+            rp = 9
+        elif weight == 682:
+            rp = 10
+        elif weight == 1304:
+            rp = 24
+            bp = 0
         else:
             # 想定外のweghitの場合エラー送出
-            rp = 28
             raise NewError.NewSizeError("New Size Error. weight is [{0}].".format(weight))
         RIGHT_PIXEL = rp # 右からのピクセル数
-        BOTTOM_PIXEL = 16 # 下からのピクセル数
+        BOTTOM_PIXEL = bp # 下からのピクセル数
         SPLIT_X = 4 # 横分割数
         SPLIT_Y = 4 # 縦分割数
 
@@ -325,7 +337,11 @@ class ComicDownloader:
                     retry_count = 0
                     while config["scraping"]["retry_num"] >= retry_count:
                         try:
+                            st_time = time.time()
                             r_random_img = requests.get(random_url)
+                            fi_time = time.time() - st_time
+                            if fi_time > 2: # 2秒以上掛かったら画像取得エラーとみなす
+                                raise Exception("Image acquisition takes too long.{0}ms".format(str(fi_time)))
                         except Exception as e:
                             logger.debug("title: {0}. subtitle: {1}. message: {2}".format(self.updates["titles"][count_num], episode_subtitles[num], e))
                             time.sleep(10)
@@ -448,6 +464,10 @@ class ComicDownloader:
             self.mariadb_client.connection.rollback()
             logger.info(ms.Rollback)
         else:
+            try:
+                logger.info("\r\n".join(map(str, self.insert_to_db)))
+            finally:
+                pass
             logger.info("{0} 件DBに挿入しました。".format(str(len(self.insert_to_db))))
         finally:
             self.mariadb_client.commit()

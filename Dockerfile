@@ -79,6 +79,7 @@ RUN sudo /opt/conda/bin/conda install -y -c conda-canary -c defaults -c conda-fo
     opencv \
     pandas \
     pexpect \
+    Pillow \
     pycosat \
     pydrive \
     pymysql \
