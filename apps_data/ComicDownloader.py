@@ -173,8 +173,14 @@ class ComicDownloader:
             rp = 9
         elif weight == 682:
             rp = 10
+        elif weight == 1303:
+            rp = 23
+            bp = 0
         elif weight == 1304:
             rp = 24
+            bp = 0
+        elif weight == 1440:
+            rp = 0
             bp = 0
         else:
             # 想定外のweghitの場合エラー送出
@@ -255,28 +261,31 @@ class ComicDownloader:
             if r_api.status_code == 200:
                 api_data = json.loads(r_api.text)
 
-            next_api_url = api_data["nextUrl"]
+                next_api_url = api_data["nextUrl"]
 
-            api_soup = bs(api_data["html"],"html.parser")
+                api_soup = bs(api_data["html"],"html.parser")
 
-            counter = 1
-            for obj in api_soup.find_all("li"):
-                free = False
-                for li in obj.find_all("a"):
-                    episode_urls.append(li.get("href"))
-                for li in obj.find_all("h4"):
-                    episode_subtitles.append(RE_MATCH.match(li.get_text()).groups()[0]) # 正規表現で話数だけ取得
-                for li in obj.find_all("span"):
-                    if li.get_text() == "無料":
-                        free = True
-                episode_is_free.append(free)
-                counter += 1
-            # ループ停止条件：
-            # 1.取得したデータがREAD_MORE_NUM未満
-            # 2.取得したデータがREAD_MORE_NUMと一致 かつ 最後の一つのURLがurl_baseと一致
-            if counter < READ_MORE_NUM or (counter == READ_MORE_NUM and episode_urls[-1] == url_base):
+                counter = 1
+                for obj in api_soup.find_all("li"):
+                    free = False
+                    for li in obj.find_all("a"):
+                        episode_urls.append(li.get("href"))
+                    for li in obj.find_all("h4"):
+                        episode_subtitles.append(RE_MATCH.match(li.get_text()).groups()[0]) # 正規表現で話数だけ取得
+                    for li in obj.find_all("span"):
+                        if li.get_text() == "無料":
+                            free = True
+                    episode_is_free.append(free)
+                    counter += 1
+                # ループ停止条件：
+                # 1.取得したデータがREAD_MORE_NUM未満
+                # 2.取得したデータがREAD_MORE_NUMと一致 かつ 最後の一つのURLがurl_baseと一致
+                if counter < READ_MORE_NUM or (counter == READ_MORE_NUM and episode_urls[-1] == url_base):
+                    break
+                time.sleep(1)
+            elif r_api.status_code == 404:
+                logger.error("404 Error. When get next episode url. Please check this title. {0}".format(html_json["episode"]["series_title"]))
                 break
-            time.sleep(1)
 
         return episode_urls, episode_subtitles, episode_is_free
 
