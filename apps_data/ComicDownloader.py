@@ -173,6 +173,11 @@ class ComicDownloader:
             rp = 9
         elif weight == 682:
             rp = 10
+        elif weight == 840:
+            rp = 8
+        elif weight == 967:
+            rp = 7
+            bp = 24
         elif weight == 1303:
             rp = 23
             bp = 0
