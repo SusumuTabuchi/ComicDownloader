@@ -121,6 +121,7 @@ class ComicDownloader:
     def create_comic_directory(self):
         for title in self.updates["titles"]:
             cmn.make_directory(path.join(SAVE_DIRECTORY, title))
+            logger.info(f"Make directory : {title}")
 
     def remade_image(self, source_path, destination_path):
 
@@ -157,12 +158,33 @@ class ComicDownloader:
         # 20230930 bpが0となるパターン出現に伴い、bpの値を指定する
         rp = 28
         bp = 16
-        if weight == 764:
+        if weight == 575:
+            if hight == 840:
+                rp = 31
+                bp = 8
+            elif hight == 1400:
+                rp = 31
+                bp = 24
+            elif hight == 1313:
+                rp = 31
+                bp = 1
+        elif weight == 658:
+            if hight == 1016:
+                rp = 18
+                bp = 24
+            else:
+                rp = 18
+                bp = -4
+        elif weight == 764:
             rp = 28
         elif weight == 760:
             rp = 24
         elif weight == 779:
             rp = 11
+        elif weight == 820:
+            rp = 20
+        elif weight == 821:
+            rp = 21
         elif weight == 822:
             rp = 22
         elif weight == 836:
@@ -175,6 +197,11 @@ class ComicDownloader:
             rp = 10
         elif weight == 840:
             rp = 8
+        elif weight == 849:
+            rp = 17
+        elif weight == 959:
+            rp = 31
+            bp = 24
         elif weight == 967:
             rp = 7
             bp = 24
@@ -252,45 +279,43 @@ class ComicDownloader:
                 # 最初の1個でbreak
                 break
         series_id = html_json["episode"]["series_id"] # title毎の固定値
+        episode_id = html_json['episode']['episode_id']
+        # ページネーションの情報を取得するAPI
+        page_info_url = 'https://shonenjumpplus.com/api/viewer/readable_product_pagination_information?type=episode&aggregate_id={0}&readable_product_id={1}'.format(series_id, episode_id)
+        re = requests.get(page_info_url, headers=HEADERS)
+        page_info = json.loads(re.text)
 
-        # 全ての話数データを取得する
-        # 隠れている話数を取得するAPI
-        next_api_url = "https://shonenjumpplus.com/api/viewer/readable_products?aggregate_id={0}&number_since={1}&number_until={2}&read_more_num={3}&type=episode".format(series_id, NUMBER_SINCE, NUMBER_UNTIL, READ_MORE_NUM)
+        # 1ページ辺りの件数
+        per_page = page_info['per_page']
+        # ページネーションの個数（ループ回数）　：　(A + B - 1) // B で切り上げの計算(math.ceil(A / B))
+        loop = (page_info['readable_products_count'] + per_page - 1) // per_page
+
+        # 話数データ取得
+        offset = 0
+        limit = per_page
         # エピソードの情報を取得
         episode_urls = []
         episode_subtitles = []
         episode_is_free = []
-        while True:
-            api_url = next_api_url
-            r_api = requests.get(url=api_url, headers=HEADERS)
-            if r_api.status_code == 200:
-                api_data = json.loads(r_api.text)
-
-                next_api_url = api_data["nextUrl"]
-
-                api_soup = bs(api_data["html"],"html.parser")
-
-                counter = 1
-                for obj in api_soup.find_all("li"):
-                    free = False
-                    for li in obj.find_all("a"):
-                        episode_urls.append(li.get("href"))
-                    for li in obj.find_all("h4"):
-                        episode_subtitles.append(RE_MATCH.match(li.get_text()).groups()[0]) # 正規表現で話数だけ取得
-                    for li in obj.find_all("span"):
-                        if li.get_text() == "無料":
-                            free = True
-                    episode_is_free.append(free)
-                    counter += 1
-                # ループ停止条件：
-                # 1.取得したデータがREAD_MORE_NUM未満
-                # 2.取得したデータがREAD_MORE_NUMと一致 かつ 最後の一つのURLがurl_baseと一致
-                if counter < READ_MORE_NUM or (counter == READ_MORE_NUM and episode_urls[-1] == url_base):
-                    break
-                time.sleep(1)
-            elif r_api.status_code == 404:
+        for i in range(1, loop + 1):
+            page_url = 'https://shonenjumpplus.com/api/viewer/pagination_readable_products?type=episode&aggregate_id={0}&offset={1}&limit={2}j&sort_order=desc&is_guest=1'.format(series_id, offset, limit)
+            re = requests.get(page_url, headers=HEADERS)
+            if re.status_code == 200:
+                page = json.loads(re.text)
+                for p in page:
+                    is_free = p['status']['label'] == 'is_free'
+                    episode_is_free.append(is_free)
+                    episode_urls.append(p['viewer_uri'])
+                    try:
+                        episode_subtitles.append(RE_MATCH.match(p['title']).groups()[0])
+                    except:
+                        # []がないパターンに対応。そのままの文字列を話数として取得
+                        episode_subtitles.append(p['title'])
+            else:
                 logger.error("404 Error. When get next episode url. Please check this title. {0}".format(html_json["episode"]["series_title"]))
-                break
+            offset += per_page
+            limit + per_page
+            time.sleep(1)
 
         return episode_urls, episode_subtitles, episode_is_free
 
@@ -307,6 +332,9 @@ class ComicDownloader:
                     logger.debug("Pass because it has already been obtained. title: {0}. subtitle: {1}.".format(self.updates["titles"][count_num], episode_subtitles[num]))
                     continue
                 # 話数フォルダを作成
+                if self.updates["titles"][count_num] == "エルドライブ【ēlDLIVE】": # エルドライブ特別対応
+                    subtitle_list = episode_subtitles[num].split("/")
+                    episode_subtitles[num] = subtitle_list[1] + "-" + subtitle_list[0]
                 destination_dir = path.join(SAVE_DIRECTORY, self.updates["titles"][count_num], episode_subtitles[num])
                 cmn.make_directory(destination_dir)
 
