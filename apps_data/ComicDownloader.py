@@ -335,6 +335,8 @@ class ComicDownloader:
                 if self.updates["titles"][count_num] == "エルドライブ【ēlDLIVE】": # エルドライブ特別対応
                     subtitle_list = episode_subtitles[num].split("/")
                     episode_subtitles[num] = subtitle_list[1] + "-" + subtitle_list[0]
+                if "/" in episode_subtitles[num]: # タイトルに/を含む場合に全角に変換する
+                    episode_subtitles[num] = episode_subtitles[num].replace("/", "／")
                 destination_dir = path.join(SAVE_DIRECTORY, self.updates["titles"][count_num], episode_subtitles[num])
                 cmn.make_directory(destination_dir)
 
@@ -513,6 +515,7 @@ class ComicDownloader:
             logger.info("{0} 件DBに挿入しました。".format(str(len(self.insert_to_db))))
         finally:
             self.mariadb_client.commit()
+            self.insert_to_db = []
 
 def get_config(config_file_path):
     return toml.load(open(config_file_path))
@@ -568,8 +571,8 @@ if __name__ == "__main__":
             a,b,c = cd.get_episode_urls_urasunday(soup)
             cd.get_episode_images_urasunday(a, b, c, i)
 
-    if len(cd.insert_to_db) > 0:
-        cd.update_got_items()
+        if len(cd.insert_to_db) > 0:
+            cd.update_got_items()
     else:
         logger.info("Number of Updates 0.")
 
